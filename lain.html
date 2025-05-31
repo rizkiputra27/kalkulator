@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Kalkulator Mewah dengan Riwayat</title>
+<style>
+  :root {
+    --bg-light: #f9f9fb;
+    --text-light: #222;
+    --btn-light-bg: #e0e7ff;
+    --btn-light-hover: #c7d2fe;
+
+    --bg-dark: #121212;
+    --text-dark: #eee;
+    --btn-dark-bg: #333;
+    --btn-dark-hover: #444;
+
+    --bg-neon: #0f0f2b;
+    --text-neon: #00ffea;
+    --btn-neon-bg: #00ffea22;
+    --btn-neon-hover: #00ffea44;
+
+    --transition-time: 0.4s;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0; padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    background-color: var(--bg-light);
+    color: var(--text-light);
+    transition: background-color var(--transition-time), color var(--transition-time);
+  }
+
+  body.dark {
+    background-color: var(--bg-dark);
+    color: var(--text-dark);
+  }
+  body.neon {
+    background-color: var(--bg-neon);
+    color: var(--text-neon);
+  }
+
+  .theme-selector {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #ddd;
+    border-radius: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    padding: 6px 12px;
+    display: flex;
+    gap: 15px;
+    user-select: none;
+    z-index: 10;
+  }
+  body.dark .theme-selector {
+    background: #333;
+  }
+  body.neon .theme-selector {
+    background: #002022;
+  }
+  .theme-btn {
+    border: none;
+    background: transparent;
+    font-weight: 600;
+    font-size: 16px;
+    color: inherit;
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 15px;
+    transition: background-color 0.3s ease;
+  }
+  .theme-btn:hover {
+    background-color: rgba(0,0,0,0.1);
+  }
+  .theme-btn.active {
+    background-color: #667eea;
+    color: white;
+    box-shadow: 0 4px 12px rgba(102,126,234,0.8);
+  }
+  body.dark .theme-btn.active {
+    background-color: #8b9eff;
+    color: #222;
+  }
+  body.neon .theme-btn.active {
+    background-color: #00ffe7;
+    color: #004d4d;
+  }
+
+  main {
+    margin-top: 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    width: 320px;
+    max-width: 95vw;
+  }
+
+  .calculator {
+    background-color: var(--btn-light-bg);
+    padding: 30px 30px 40px;
+    border-radius: 20px;
+    box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+    width: 100%;
+    transition: background-color var(--transition-time), box-shadow var(--transition-time);
+  }
+  body.dark .calculator {
+    background-color: var(--btn-dark-bg);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.7);
+  }
+  body.neon .calculator {
+    background-color: var(--btn-neon-bg);
+    box-shadow: 0 0 30px var(--text-neon);
+  }
+
+  .display {
+    width: 100%;
+    height: 65px;
+    font-size: 30px;
+    text-align: right;
+    margin-bottom: 25px;
+    padding: 12px 18px;
+    border: none;
+    border-radius: 15px;
+    background-color: #fff;
+    color: #111;
+    box-shadow: inset 0 0 8px #ddd;
+    user-select: none;
+    transition: background-color var(--transition-time), color var(--transition-time);
+  }
+  body.dark .display {
+    background-color: #222;
+    color: #eee;
+    box-shadow: inset 0 0 12px #555;
+  }
+  body.neon .display {
+    background-color: #001f22;
+    color: var(--text-neon);
+    box-shadow: inset 0 0 15px var(--text-neon);
+  }
+
+  .buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+  }
+
+  button {
+    padding: 20px;
+    font-size: 22px;
+    border: none;
+    border-radius: 14px;
+    cursor: pointer;
+    background-color: var(--btn-light-bg);
+    color: var(--text-light);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+    transition: background-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease, transform 0.15s ease;
+    user-select: none;
+  }
+  button:hover {
+    background-color: var(--btn-light-hover);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+    transform: translateY(-3px);
+  }
+  button:active {
+    transform: translateY(1px);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  }
+
+  body.dark button {
+    background-color: var(--btn-dark-bg);
+    color: var(--text-dark);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.7);
+  }
+  body.dark button:hover {
+    background-color: var(--btn-dark-hover);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.9);
+  }
+
+  body.neon button {
+    background-color: var(--btn-neon-bg);
+    color: var(--text-neon);
+    box-shadow: 0 0 12px var(--text-neon);
+  }
+  body.neon button:hover {
+    background-color: var(--btn-neon-hover);
+    box-shadow: 0 0 18px var(--text-neon);
+  }
+
+  .operator {
+    font-weight: 700;
+    background-color: #667eea;
+    color: white;
+    box-shadow: 0 6px 18px rgba(102,126,234,0.8);
+  }
+  .operator:hover {
+    background-color: #5563d1;
+    box-shadow: 0 8px 22px rgba(85,99,209,0.9);
+  }
+  body.dark .operator {
+    background-color: #8b9eff;
+    box-shadow: 0 6px 18px rgba(139,158,255,0.9);
+    color: #ddd;
+  }
+  body.dark .operator:hover {
+    background-color: #a3b7ff;
+  }
+  body.neon .operator {
+    background-color: #00ffe7;
+    box-shadow: 0 0 25px #00ffe7;
+    color: #004d4d;
+  }
+  body.neon .operator:hover {
+    background-color: #00d4b9;
+  }
+
+  .equal {
+    grid-column: span 2;
+    font-weight: 700;
+    background-color: #43a047;
+    color: white;
+    box-shadow: 0 6px 18px rgba(67,160,71,0.8);
+  }
+  .equal:hover {
+    background-color: #2e7d32;
+    box-shadow: 0 8px 22px rgba(46,125,50,0.9);
+  }
+  body.dark .equal {
+    background-color: #66bb6a;
+    box-shadow: 0 6px 18px rgba(102,187,106,0.9);
+    color: #eee;
+  }
+  body.dark .equal:hover {
+    background-color: #4a8e42;
+  }
+  body.neon .equal {
+    background-color: #00cc7a;
+    box-shadow: 0 0 25px #00cc7a;
+    color: #003e26;
+  }
+  body.neon .equal:hover {
+    background-color: #00994e;
+  }
+
+  .clear {
+    font-weight: 700;
+    background-color: #e53935;
+    color: white;
+    box-shadow: 0 6px 18px rgba(229,57,53,0.8);
+  }
+  .clear:hover {
+    background-color: #b71c1c;
+    box-shadow: 0 8px 22px rgba(183,28,28,0.9);
+  }
+  body.dark .clear {
+    background-color: #ef5350;
+    box-shadow: 0 6px 18px rgba(239,83,80,0.9);
+    color: #eee;
+  }
+  body.dark .clear:hover {
+    background-color: #c62828;
+  }
+  body.neon .clear {
+    background-color: #ff1744;
+    box-shadow: 0 0 25px #ff1744;
+    color: #33000e;
+  }
+  body.neon .clear:hover {
+    background-color: #cc0033;
+  }
+
+  .percent {
+    font-weight: 700;
+    background-color: #ffb300;
+    color: black;
+    box-shadow: 0 6px 18px rgba(255,179,0,0.8);
+  }
+  .percent:hover {
+    background-color: #e6ac00;
+    box-shadow: 0 8px 22px rgba(230,172,0,0.9);
+  }
+  body.dark .percent {
+    background-color: #ffd54f;
+    color: black;
+    box-shadow: 0 6px 18px rgba(255,213,79,0.9);
+  }
+  body.dark .percent:hover {
+    background-color: #ffca28;
+  }
+  body.neon .percent {
+    background-color: #ffd600;
+    color: black;
+    box-shadow: 0 0 25px #ffd600;
+  }
+  body.neon .percent:hover {
+    background-color: #cca800;
+  }
+
+  /* Riwayat */
+  .history {
+    width: 100%;
+    max-height: 180px;
+    background-color: var(--btn-light-bg);
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    overflow-y: auto;
+    padding: 10px 15px;
+    font-size: 16px;
+    line-height: 1.4;
+    transition: background-color var(--transition-time), color var(--transition-time);
+  }
+  body.dark .history {
+    background-color: var(--btn-dark-bg);
+    color: var(--text-dark);
+    box-shadow: 0 5px 20px rgba(0,0,0,0.7);
+  }
+  body.neon .history {
+    background-color: var(--btn-neon-bg);
+    color: var(--text-neon);
+    box-shadow: 0 0 25px var(--text-neon);
+  }
+  .history-item {
+    cursor: pointer;
+    padding: 5px 8px;
+    border-radius: 8px;
+    transition: background-color 0.2s ease;
+  }
+  .history-item:hover {
+    background-color: rgba(102,126,234,0.3);
+  }
+  body.dark .history-item:hover {
+    background-color: rgba(139,158,255,0.3);
+  }
+  body.neon .history-item:hover {
+    background-color: #00ffe733;
+  }
+</style>
+</head>
+<body>
+  <div class="theme-selector" aria-label="Pilih Tema">
+    <button class="theme-btn active" data-theme="light" aria-pressed="true">Light</button>
+    <button class="theme-btn" data-theme="dark" aria-pressed="false">Dark</button>
+    <button class="theme-btn" data-theme="neon" aria-pressed="false">Neon</button>
+  </div>
+
+  <main>
+    <section class="calculator" role="application" aria-label="Kalkulator">
+      <input type="text" class="display" aria-live="polite" readonly value="0" />
+      <div class="buttons">
+        <button class="clear" aria-label="Clear (C)">C</button>
+        <button class="percent" aria-label="Percent (%)">%</button>
+        <button class="operator" aria-label="Divide (÷)">÷</button>
+        <button class="operator" aria-label="Multiply (×)">×</button>
+
+        <button aria-label="7">7</button>
+        <button aria-label="8">8</button>
+        <button aria-label="9">9</button>
+        <button class="operator" aria-label="Subtract (−)">−</button>
+
+        <button aria-label="4">4</button>
+        <button aria-label="5">5</button>
+        <button aria-label="6">6</button>
+        <button class="operator" aria-label="Add (+)">+</button>
+
+        <button aria-label="1">1</button>
+        <button aria-label="2">2</button>
+        <button aria-label="3">3</button>
+        <button class="equal" aria-label="Equal (=)">=</button>
+
+        <button aria-label="0" style="grid-column: span 2;">0</button>
+        <button aria-label="Decimal point (.)">.</button>
+      </div>
+    </section>
+
+    <section class="history" aria-label="Riwayat Perhitungan" tabindex="0">
+      <!-- riwayat akan muncul di sini -->
+    </section>
+  </main>
+
+<script>
+  const display = document.querySelector('.display');
+  const buttons = document.querySelectorAll('button');
+  const themeButtons = document.querySelectorAll('.theme-btn');
+  const historyContainer = document.querySelector('.history');
+
+  let currentInput = '0';
+  let operator = null;
+  let firstOperand = null;
+  let waitingForSecond = false;
+  let history = [];
+
+  function updateDisplay() {
+    display.value = currentInput;
+  }
+
+  function addHistoryItem(expression, result) {
+    const item = document.createElement('div');
+    item.classList.add('history-item');
+    item.textContent = `${expression} = ${result}`;
+    item.title = 'Klik untuk pakai hasil';
+    item.addEventListener('click', () => {
+      currentInput = String(result);
+      updateDisplay();
+      waitingForSecond = false;
+      operator = null;
+      firstOperand = null;
+    });
+    historyContainer.prepend(item);
+    history.unshift({ expression, result });
+    if(history.length > 20) {
+      history.pop();
+      if(historyContainer.lastChild) historyContainer.removeChild(historyContainer.lastChild);
+    }
+  }
+
+  function inputDigit(digit) {
+    if (waitingForSecond) {
+      currentInput = digit;
+      waitingForSecond = false;
+    } else {
+      currentInput = currentInput === '0' ? digit : currentInput + digit;
+    }
+  }
+
+  function inputDecimal() {
+    if (waitingForSecond) {
+      currentInput = '0.';
+      waitingForSecond = false;
+      return;
+    }
+    if (!currentInput.includes('.')) {
+      currentInput += '.';
+    }
+  }
+
+  function clearAll() {
+    currentInput = '0';
+    firstOperand = null;
+    operator = null;
+    waitingForSecond = false;
+  }
+
+  function performCalculation(op, a, b) {
+    switch(op) {
+      case '+': return a + b;
+      case '−': return a - b;
+      case '×': return a * b;
+      case '÷': return b === 0 ? 'Error' : a / b;
+      default: return b;
+    }
+  }
+
+  function handleOperator(nextOperator) {
+    const inputValue = parseFloat(currentInput);
+    if (operator && waitingForSecond) {
+      operator = nextOperator;
+      return;
+    }
+    if (firstOperand == null) {
+      firstOperand = inputValue;
+    } else if (operator) {
+      const result = performCalculation(operator, firstOperand, inputValue);
+      if(result === 'Error') {
+        currentInput = 'Error';
+        firstOperand = null;
+        operator = null;
+        waitingForSecond = false;
+        updateDisplay();
+        return;
+      }
+      addHistoryItem(`${firstOperand} ${operator} ${inputValue}`, result);
+      currentInput = String(result);
+      firstOperand = result;
+    }
+    operator = nextOperator;
+    waitingForSecond = true;
+  }
+
+  function handlePercent() {
+    let value = parseFloat(currentInput);
+    value = value / 100;
+    currentInput = String(value);
+  }
+
+  buttons.forEach(button => {
+    button.addEventListener('click', () => {
+      const btnText = button.textContent;
+
+      if (button.classList.contains('clear')) {
+        clearAll();
+        updateDisplay();
+        return;
+      }
+      if (button.classList.contains('percent')) {
+        handlePercent();
+        updateDisplay();
+        return;
+      }
+      if (button.classList.contains('operator')) {
+        handleOperator(btnText);
+        updateDisplay();
+        return;
+      }
+      if (button.classList.contains('equal')) {
+        if (operator) {
+          handleOperator(null);
+          operator = null;
+          firstOperand = null;
+          waitingForSecond = false;
+          updateDisplay();
+        }
+        return;
+      }
+      if (btnText === '.') {
+        inputDecimal();
+        updateDisplay();
+        return;
+      }
+      // digits
+      inputDigit(btnText);
+      updateDisplay();
+    });
+  });
+
+  // Theme selector
+  themeButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const selectedTheme = btn.getAttribute('data-theme');
+      document.body.className = ''; // reset
+      if(selectedTheme !== 'light') {
+        document.body.classList.add(selectedTheme);
+      }
+      themeButtons.forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-pressed', 'false');
+      });
+      btn.classList.add('active');
+      btn.setAttribute('aria-pressed', 'true');
+    });
+  });
+</script>
+</body>
+</html>
